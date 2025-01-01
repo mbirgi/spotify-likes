@@ -1,4 +1,4 @@
-import logging
+# import logging
 import os
 
 import spotipy
@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+# Login to Spotify
 def login(username='mbirgi', scope='user-library-read'):
     spotify_auth_params = {
         'client_id': os.getenv('CLIENT_ID'),
@@ -23,108 +24,59 @@ def login(username='mbirgi', scope='user-library-read'):
     return spotipy.Spotify(auth=token)
 
 
-def get_saved_albums(sp):
-    album_results = sp.current_user_saved_albums()
-    albums = album_results['items']
-    while album_results['next']:
-        album_results = sp.next(album_results)
-        albums.extend(album_results['items'])
-    return albums
+# Function to get liked tracks
+def get_liked_tracks():
+    results = sp.current_user_saved_tracks(limit=50)
+    track_uris = []
+
+    while results:
+        for item in results['items']:
+            track = item['track']
+            track_uris.append(track['uri'])  # Collect track URIs
+        if results['next']:
+            results = sp.next(results)
+        else:
+            break
+
+        return track_uris
 
 
-def get_saved_tracks(sp):
-    track_results = sp.current_user_saved_tracks()
-    tracks = track_results['items']
-    while track_results['next']:
-        track_results = sp.next(track_results)
-        tracks.extend(track_results['items'])
-    return tracks
+# Function to get all user playlists with pagination
+def get_all_playlists():
+    playlists = []
+    results = sp.current_user_playlists(limit=50)  # Start with the first page
 
+    while results:
+        playlists.extend(results['items'])  # Add current page items to the list
+        if results['next']:
+            results = sp.next(results)  # Go to the next page
+        else:
+            break
 
-def get_playlists(sp):
-    playlist_results = sp.current_user_playlists()
-    playlists = playlist_results['items']
-    while playlist_results['next']:
-        playlist_results = sp.next(playlist_results)
-        playlists.extend(playlist_results['items'])
     return playlists
 
 
-def get_genres(track, spotipy_instance):
-    artist_id = track['artists'][0]['id']
-    artist = spotipy_instance.artist(artist_id)
-    genres = artist['genres']
-    return genres
+# Function to clear existing playlist
+def clear_playlist(playlist_id):
+    sp.playlist_replace_items(playlist_id, [])
+    print(f"Cleared playlist with ID: {playlist_id}")
 
 
-def get_playlist_by_name(spotipy_instance, playlist_name, create_if_none=False):
-    user_id = spotipy_instance.current_user()['id']
-    results = spotipy_instance.user_playlists(user_id)
-    user_playlists = results['items']
-    while results['next']:
-        results = spotipy_instance.next(results)
-        user_playlists.extend(results['items'])
-    playlist_id, is_new = None, None
-    for list in user_playlists:
-        if playlist_name == list['name']:
-            playlist_id = list['id']
-            is_new = False
-            break
-    if not playlist_id and create_if_none == True:
-        new_playlist = spotipy_instance.user_playlist_create(user_id, name=playlist_name, public=False)
-        playlist_id = new_playlist['id']
-        is_new = True
-    return playlist_id, is_new
+# Function to create a new playlist and add liked tracks in batches
+def create_playlist_and_add_tracks(playlist_name):
+    # Create a new playlist
+    user_id = sp.current_user()['id']
+    new_playlist = sp.user_playlist_create(user_id, playlist_name, public=False)
+    
+    # Get liked tracks
+    track_uris = get_liked_tracks()
+
+    # Add tracks to the new playlist in batches of 100
+    if track_uris:
+        for i in range(0, len(track_uris), 100):
+            batch = track_uris[i:i + 100]  # Get the next batch of up to 100 tracks
+            sp.playlist_add_items(new_playlist['id'], batch)
+            print(f"Added {len(batch)} liked tracks to '{playlist_name}'.")
 
 
-def populate_playlist(sp, playlist_id, track_ids):
-    # update playlist to the supplied tracks
-    exit
 
-def add_tracks(spotipy_instance, playlist_id, track_ids, skip_duplicates=True):
-    # get existing tracks:
-    results = spotipy_instance.playlist_tracks(playlist_id)  # TODO: get only IDs ('fields' filter)
-    existing_tracks = results['items']
-    while results['next']:
-        results = spotipy_instance.next(results)
-        existing_tracks.extend(results['items'])
-    existing_track_ids = [item['track']['id'] for item in existing_tracks]
-    logging.info(f"Playlist has {len(existing_track_ids)} existing tracks")
-    logging.info(f"Skipping duplicates: {skip_duplicates}")
-    if skip_duplicates:
-        new_track_ids = [track_id for track_id in track_ids if track_id not in existing_track_ids]
-    else:
-        new_track_ids = track_ids
-    logging.info(f"{len(new_track_ids)} tracks to be added")
-    user_id = spotipy_instance.current_user()['id']
-    if new_track_ids:
-        limit = 100
-        for i in range(0, len(new_track_ids), limit):
-            ids = new_track_ids[i:(i + limit)]
-            spotipy_instance.user_playlist_add_tracks(user_id, playlist_id, ids)
-            logging.info(f"{len(ids)} tracks added")
-        logging.info("OK")
-        return
-    logging.info("No tracks added")
-
-
-def get_tracks_in_playlists(spotipy_instance, playlist_ids):
-    tracks = set()    # TODO: make set for no dupes? CHECK!
-    for pl_id in playlist_ids:
-        # print(f"Getting tracks for playlist {pl_id}")
-        results = spotipy_instance.playlist_tracks(pl_id)     # TODO: get only IDs ('fields' filter)
-        pl_tracks = results['items']
-        while results['next']:
-            results = spotipy_instance.next(results)
-            pl_tracks.extend(results['items'])
-        tracks.update(pl_tracks)
-    return tracks
-
-
-def get_audio_features_for_tracks(spotipy_instance, track_ids):
-    batch_size = 50
-    features = []
-    for i in range(0, len(track_ids), batch_size):
-        results = spotipy_instance.audio_features(track_ids[i:i+batch_size])
-        features.extend(results)
-    return features
