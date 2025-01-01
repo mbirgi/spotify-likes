@@ -25,20 +25,15 @@ def login(username='mbirgi', scope='user-library-read'):
 
 
 # Function to get liked tracks
-def get_liked_tracks():
+def get_liked_tracks(sp):
     results = sp.current_user_saved_tracks(limit=50)
-    track_uris = []
-
-    while results:
-        for item in results['items']:
-            track = item['track']
-            track_uris.append(track['uri'])  # Collect track URIs
-        if results['next']:
-            results = sp.next(results)
-        else:
-            break
-
-        return track_uris
+    tracks = results['items']
+    
+    while results['next']:
+        results = sp.next(results)
+        tracks.extend(results['items'])
+    
+    return tracks
 
 
 # Function to get all user playlists with pagination

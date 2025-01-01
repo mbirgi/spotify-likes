@@ -17,11 +17,9 @@ user = sp.current_user()
 # print(displayName)
 
 
-# Main execution
-playlist_name = "Radio Memo Test"
-existing_playlists = spotify.get_all_playlists(sp)
-
 # Check if the playlist already exists and clear it if so
+existing_playlists = spotify.get_all_playlists(sp)
+playlist_name = "Radio Memo Test"
 for playlist in existing_playlists:
     # print(playlist['name'])
     if playlist['name'] == playlist_name:
@@ -35,6 +33,16 @@ if 'target_playlist' not in locals():
     print(f"playlist '{playlist_name}' not found, creating")
     target_playlist = sp.user_playlist_create(user['id'], playlist_name, public=True)
 
-# Create a new playlist and add liked tracks
-# create_playlist_and_add_tracks(playlist_name)
-# print("Playlist created successfully!")
+# Get liked tracks
+liked_tracks = spotify.get_liked_tracks(sp)
+print(f"Found {len(liked_tracks)} liked tracks")
+
+# Add liked tracks to the playlist in batches
+track_uris = [track['track']['uri'] for track in liked_tracks]
+batch_size = 100
+
+for i in range(0, len(track_uris), batch_size):
+    sp.playlist_add_items(target_playlist['id'], track_uris[i:i + batch_size])
+    print(f"Added {min(i + batch_size, len(liked_tracks))} tracks to playlist")
+
+print("All liked tracks added to the playlist successfully!")
