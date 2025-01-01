@@ -42,7 +42,7 @@ def get_liked_tracks():
 
 
 # Function to get all user playlists with pagination
-def get_all_playlists():
+def get_all_playlists(sp):
     playlists = []
     results = sp.current_user_playlists(limit=50)  # Start with the first page
 
@@ -57,7 +57,7 @@ def get_all_playlists():
 
 
 # Function to clear existing playlist
-def clear_playlist(playlist_id):
+def clear_playlist(sp, playlist_id):
     sp.playlist_replace_items(playlist_id, [])
     print(f"Cleared playlist with ID: {playlist_id}")
 
