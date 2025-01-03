@@ -62,21 +62,3 @@ def clear_playlist(sp, playlist_id):
     print(f"Cleared playlist with ID: {playlist_id}")
 
 
-# Function to create a new playlist and add liked tracks in batches
-def create_playlist_and_add_tracks(playlist_name):
-    # Create a new playlist
-    user_id = sp.current_user()['id']
-    new_playlist = sp.user_playlist_create(user_id, playlist_name, public=False)
-    
-    # Get liked tracks
-    track_uris = get_liked_tracks()
-
-    # Add tracks to the new playlist in batches of 100
-    if track_uris:
-        for i in range(0, len(track_uris), 100):
-            batch = track_uris[i:i + 100]  # Get the next batch of up to 100 tracks
-            sp.playlist_add_items(new_playlist['id'], batch)
-            print(f"Added {len(batch)} liked tracks to '{playlist_name}'.")
-
-
-
