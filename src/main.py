@@ -10,12 +10,6 @@ user = sp.current_user()
 existing_playlists = spotify.get_all_playlists(sp)
 playlist_name = "Radio Memo"
 target_playlist = None
-
-# Print all existing playlist names for debugging
-print("Existing playlists:")
-for playlist in existing_playlists:
-    print(playlist['name'])
-
 for playlist in existing_playlists:
     if playlist['name'].lower() == playlist_name.lower():
         print(f"found playlist '{playlist_name}', clearing")
