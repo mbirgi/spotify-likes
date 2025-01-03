@@ -3,6 +3,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from tqdm import tqdm
 from dotenv import load_dotenv
+import logging
 
 load_dotenv()
 
@@ -59,6 +60,5 @@ def get_all_playlists(sp):
 # Function to clear existing playlist
 def clear_playlist(sp, playlist_id):
     sp.playlist_replace_items(playlist_id, [])
-    print(f"Cleared playlist with ID: {playlist_id}")
-
+    logging.info(f"Cleared playlist with ID: {playlist_id}")
 
