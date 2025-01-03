@@ -1,37 +1,44 @@
-# import logging
 import os
-
 import spotipy
-import spotipy.util
-
+from spotipy.oauth2 import SpotifyOAuth
+from tqdm import tqdm
 from dotenv import load_dotenv
+
 load_dotenv()
 
-
-# Login to Spotify
-def login(username='mbirgi', scope='user-library-read'):
-    spotify_auth_params = {
-        'client_id': os.getenv('CLIENT_ID'),
-        'client_secret': os.getenv('CLIENT_SECRET'),
-        'redirect_uri': os.getenv('REDIRECT_URI'),
-        'scope': scope
-    }
-    try:
-        token = spotipy.util.prompt_for_user_token(username, **spotify_auth_params)
-    except:
-        os.remove(f'.cache-{username}')
-        token = spotipy.util.prompt_for_user_token(username, **spotify_auth_params)
-    return spotipy.Spotify(auth=token)
+def login():
+    sp_oauth = SpotifyOAuth(
+        client_id=os.getenv('CLIENT_ID'),
+        client_secret=os.getenv('CLIENT_SECRET'),
+        redirect_uri=os.getenv('REDIRECT_URI'),
+        scope='user-library-read playlist-read-private playlist-read-collaborative playlist-modify-private playlist-modify-public',
+        cache_path='.cache'
+    )
+    
+    token_info = sp_oauth.get_cached_token()
+    
+    if not token_info:
+        auth_url = sp_oauth.get_authorize_url()
+        print(f'Please navigate here: {auth_url}')
+        response = input('Enter the URL you were redirected to: ')
+        code = sp_oauth.parse_response_code(response)
+        token_info = sp_oauth.get_access_token(code)
+    
+    sp = spotipy.Spotify(auth=token_info['access_token'])
+    return sp
 
 
 # Function to get liked tracks
 def get_liked_tracks(sp):
     results = sp.current_user_saved_tracks(limit=50)
     tracks = results['items']
+    total = results['total']
     
-    while results['next']:
-        results = sp.next(results)
-        tracks.extend(results['items'])
+    with tqdm(total=total, desc="Fetching liked tracks", unit="track") as pbar:
+        while results['next']:
+            results = sp.next(results)
+            tracks.extend(results['items'])
+            pbar.update(len(results['items']))
     
     return tracks
 
@@ -39,15 +46,13 @@ def get_liked_tracks(sp):
 # Function to get all user playlists with pagination
 def get_all_playlists(sp):
     playlists = []
-    results = sp.current_user_playlists(limit=50)  # Start with the first page
-
-    while results:
-        playlists.extend(results['items'])  # Add current page items to the list
-        if results['next']:
-            results = sp.next(results)  # Go to the next page
-        else:
-            break
-
+    results = sp.current_user_playlists(limit=50)
+    playlists.extend(results['items'])
+    
+    while results['next']:
+        results = sp.next(results)
+        playlists.extend(results['items'])
+    
     return playlists
 
 
