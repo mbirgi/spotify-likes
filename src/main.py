@@ -19,7 +19,7 @@ user = sp.current_user()
 
 # Check if the playlist already exists and clear it if so
 existing_playlists = spotify.get_all_playlists(sp)
-playlist_name = "Radio Memo Test"
+playlist_name = "Radio Memo"
 for playlist in existing_playlists:
     # print(playlist['name'])
     if playlist['name'] == playlist_name:
