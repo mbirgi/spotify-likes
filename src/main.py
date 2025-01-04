@@ -2,9 +2,12 @@ import spotify
 import utils
 from tqdm import tqdm
 import logging
+import os
 
 # Configure logging
-logging.basicConfig(filename='~/logs/spotify_likes.log', level=logging.INFO, 
+log_file_path = os.path.expanduser('~/logs/spotify_likes.log')
+os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+logging.basicConfig(filename=log_file_path, level=logging.INFO, 
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
 # login
@@ -36,7 +39,7 @@ if target_playlist is None:
 # Add liked tracks to the playlist in batches
 track_uris = [track['track']['uri'] for track in liked_tracks]
 batch_size = 100
-logging.info(f"Adding liked tracks to playlist '{playlist_name}' in batches of {batch_size}")
+
 for i in tqdm(range(0, len(track_uris), batch_size), desc="Adding tracks", unit="batch"):
     sp.playlist_add_items(target_playlist['id'], track_uris[i:i + batch_size])
 
