@@ -10,9 +10,12 @@ os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
 logging.basicConfig(filename=log_file_path, level=logging.INFO, 
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
+logging.info("Starting script")
+
 # login
 sp = spotify.login()
 user = sp.current_user()
+logging.info(f"Logged in as {user['display_name']}")
 
 # Get liked tracks
 liked_tracks = spotify.get_liked_tracks(sp)
@@ -44,3 +47,4 @@ for i in tqdm(range(0, len(track_uris), batch_size), desc="Adding tracks", unit=
     sp.playlist_add_items(target_playlist['id'], track_uris[i:i + batch_size])
 
 logging.info("All liked tracks added to the playlist successfully!")
+logging.info("Script complete")
