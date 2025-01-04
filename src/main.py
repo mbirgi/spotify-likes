@@ -1,5 +1,4 @@
 import spotify
-import utils
 from tqdm import tqdm
 import logging
 import os
