@@ -39,7 +39,7 @@ if target_playlist is None:
 # Add liked tracks to the playlist in batches
 track_uris = [track['track']['uri'] for track in liked_tracks]
 batch_size = 100
-
+logging.info(f"Adding {len(track_uris)} liked tracks to the playlist")
 for i in tqdm(range(0, len(track_uris), batch_size), desc="Adding tracks", unit="batch"):
     sp.playlist_add_items(target_playlist['id'], track_uris[i:i + batch_size])
 
