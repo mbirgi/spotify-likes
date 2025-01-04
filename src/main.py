@@ -4,7 +4,7 @@ from tqdm import tqdm
 import logging
 
 # Configure logging
-logging.basicConfig(filename='spotify_likes.log', level=logging.INFO, 
+logging.basicConfig(filename='~/logs/spotify_likes.log', level=logging.INFO, 
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
 # login
