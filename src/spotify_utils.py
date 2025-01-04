@@ -41,6 +41,9 @@ def get_liked_tracks(sp):
             results = sp.next(results)
             tracks.extend(results['items'])
             pbar.update(len(results['items']))
+            
+        # Update the progress bar to 100% after the loop
+        pbar.update(total - pbar.n)
     
     return tracks
 
