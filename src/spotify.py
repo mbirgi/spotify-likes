@@ -31,6 +31,7 @@ def login():
 
 # Function to get liked tracks
 def get_liked_tracks(sp):
+    logging.info(f"Getting liked tracks")
     results = sp.current_user_saved_tracks(limit=50)
     tracks = results['items']
     total = results['total']
@@ -46,6 +47,7 @@ def get_liked_tracks(sp):
 
 # Function to get all user playlists with pagination
 def get_all_playlists(sp):
+    logging.info(f"Getting all playlists")
     playlists = []
     results = sp.current_user_playlists(limit=50)
     playlists.extend(results['items'])
