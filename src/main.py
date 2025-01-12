@@ -1,3 +1,4 @@
+import spotipy
 import spotify_utils
 from tqdm import tqdm
 import logging
@@ -23,36 +24,31 @@ liked_tracks = spotify_utils.get_liked_tracks(sp)
 logging.info(f"Found {len(liked_tracks)} liked tracks")
 
 # Check if the playlist already exists and clear it if so
-playlist_name = "Radio Memo"
+playlist_id = "2H8Wus9KXf7WGg9rbXLy9e"
 target_playlist = None
 
 for attempt in range(10):
-    existing_playlists = spotify_utils.get_all_playlists(sp)
-    logging.info(f"Attempt {attempt + 1}: Found {len(existing_playlists)} existing playlists")
-    
-    for playlist in existing_playlists:
-        if playlist['name'].lower() == playlist_name.lower():
-            logging.info(f"Found playlist '{playlist_name}' with id {playlist['id']}, clearing")
-            spotify_utils.clear_playlist(sp, playlist['id'])
-            target_playlist = playlist
-            break
-    
-    if target_playlist:
+    try:
+        target_playlist = sp.playlist(playlist_id)
+        logging.info(f"Found playlist '{target_playlist['name']}' with id {playlist_id}, clearing")
+        spotify_utils.clear_playlist(sp, playlist_id)
         break
-    else:
-        logging.info(f"Playlist '{playlist_name}' not found, retrying in 5 seconds...")
+    except spotipy.exceptions.SpotifyException as e:
+        logging.info(f"Attempt {attempt + 1}: Playlist with id {playlist_id} not found, retrying in 5 seconds...")
         time.sleep(5)
 
 if not target_playlist:
-    logging.info(f"Playlist '{playlist_name}' not found after 10 attempts, creating")
-    target_playlist = sp.user_playlist_create(user['id'], playlist_name, public=True)
+    logging.info(f"Playlist with id {playlist_id} not found after 10 attempts, creating a new playlist")
+    target_playlist = sp.user_playlist_create(user['id'], "Radio Memo", public=True)
+    playlist_id = target_playlist['id']
+    logging.info(f"Created new playlist '{target_playlist['name']}' with id {playlist_id}")
 
 # Add liked tracks to the playlist in batches
 track_uris = [track['track']['uri'] for track in liked_tracks]
 batch_size = 100
 logging.info(f"Adding {len(track_uris)} liked tracks to the playlist")
 for i in tqdm(range(0, len(track_uris), batch_size), desc="Adding tracks", unit="batch"):
-    sp.playlist_add_items(target_playlist['id'], track_uris[i:i + batch_size])
+    sp.playlist_add_items(playlist_id, track_uris[i:i + batch_size])
 
 logging.info("All liked tracks added to the playlist successfully!")
 logging.info("**** Script complete")
