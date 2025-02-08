@@ -9,9 +9,9 @@ load_dotenv()
 
 def login():
     sp_oauth = SpotifyOAuth(
-        client_id=os.getenv('CLIENT_ID'),
-        client_secret=os.getenv('CLIENT_SECRET'),
-        redirect_uri=os.getenv('REDIRECT_URI'),
+        client_id=os.getenv('SPOTIFY_CLIENT_ID'),
+        client_secret=os.getenv('SPOTIFY_CLIENT_SECRET'),
+        redirect_uri=os.getenv('SPOTIFY_REDIRECT_URI'),
         scope='user-library-read playlist-read-private playlist-read-collaborative playlist-modify-private playlist-modify-public',
         cache_path='.cache'
     )
