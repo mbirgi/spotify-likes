@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import spotipy
 import spotify_utils
 from tqdm import tqdm
