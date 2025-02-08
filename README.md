@@ -20,6 +20,3 @@ docker build -t spotify-likes .
 ```
 docker run --env-file .env spotify-likes
 ```
-
-
-
