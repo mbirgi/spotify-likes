@@ -1,0 +1,1 @@
+0 * * * * cd ~/dev/spotify-likes && /home/memo/miniconda3/envs/spotify/bin/python ~/dev/spotify-likes/src/main.py
