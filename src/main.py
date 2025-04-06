@@ -16,10 +16,17 @@ logging.basicConfig(filename=log_file_path, level=logging.INFO,
 logging.info("====================")
 logging.info("**** Starting script")
 
-# login
-sp = spotify_utils.login()
-user = sp.current_user()
-logging.info(f"Logged in as {user['display_name']}")
+try:
+    # login
+    sp = spotify_utils.login()
+    user = sp.current_user()
+    logging.info(f"Logged in as {user['display_name']}")
+except spotipy.exceptions.SpotifyException as e:
+    logging.error(f"Failed to login: {str(e)}")
+    raise
+except Exception as e:
+    logging.error(f"Unexpected error during login: {str(e)}")
+    raise
 
 # Get liked tracks
 liked_tracks = spotify_utils.get_liked_tracks(sp)
